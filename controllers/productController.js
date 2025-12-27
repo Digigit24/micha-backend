@@ -14,7 +14,7 @@ const createProduct = async (req, res) => {
 
         let product_images = [];
         if (req.files && req.files.length > 0) {
-            product_images = req.files.map(file => file.path.replace(/\\/g, "/"));
+            product_images = req.files.map(file => file.location);
         } else if (req.body.product_image) {
             // Handle case where it might be a single string URL if no file uploaded
             product_images = Array.isArray(req.body.product_image) ? req.body.product_image : [req.body.product_image];
@@ -79,7 +79,7 @@ const updateProduct = async (req, res) => {
         };
 
         if (req.files && req.files.length > 0) {
-            dataToUpdate.product_image = req.files.map(file => file.path.replace(/\\/g, "/"));
+            dataToUpdate.product_image = req.files.map(file => file.location);
         }
 
         const product = await prisma.product.update({

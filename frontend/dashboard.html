@@ -273,9 +273,15 @@
 
         // Modal Logic
         // ... (openProductModal, openCategoryModal, closeModal, window.onclick) ...
-        function openProductModal(product = null) {
+        async function openProductModal(product = null) {
             document.getElementById('productModal').classList.add('active');
-            loadCategoriesForSelect();
+
+            // Show loading state
+            const select = document.getElementById('productCategory');
+            if (select) select.innerHTML = '<option>Loading...</option>';
+
+            await loadCategoriesForSelect();
+
             const form = document.getElementById('productForm');
             const title = document.getElementById('productModalTitle');
 
@@ -289,7 +295,7 @@
                 document.getElementById('productDiscount').value = product.product_discount;
                 document.getElementById('productFeature').value = product.product_feature;
                 document.getElementById('productTag').value = product.product_tag;
-                document.getElementById('productCategory').value = product.category_id;
+                if (select) document.getElementById('productCategory').value = product.category_id;
                 document.getElementById('productAvailable').checked = product.product_available;
                 document.getElementById('productImage').required = false;
             } else {
@@ -298,6 +304,7 @@
                 form.reset();
                 document.getElementById('productId').value = "";
                 document.getElementById('productImage').required = true;
+                // If categories are loaded, the select defaults to the first one, which is correct for reset state
             }
         }
 
@@ -349,7 +356,8 @@
                     let imgHtml = '-';
                     if (p.product_image && p.product_image.length > 0) {
                         const firstImg = p.product_image[0];
-                        imgHtml = `<img src="http://localhost:3000/${firstImg}" alt="img" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">`;
+                        const src = firstImg.startsWith('http') ? firstImg : `http://localhost:3000/${firstImg}`;
+                        imgHtml = `<img src="${src}" alt="img" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">`;
                     }
                     return `
                     <tr>
@@ -426,7 +434,7 @@
                         <td>${c.category_id}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                ${c.icon ? `<img src="http://localhost:3000/${c.icon}" alt="icon" style="width: 30px; height: 30px; object-fit: contain;">` : ''}
+                                ${c.icon ? `<img src="${c.icon.startsWith('http') ? c.icon : 'http://localhost:3000/' + c.icon}" alt="icon" style="width: 30px; height: 30px; object-fit: contain;">` : ''}
                                 ${c.category_name}
                             </div>
                         </td>
@@ -453,13 +461,16 @@
                 const categories = await res.json();
                 const select = document.getElementById('productCategory');
                 if (select) {
-                    // preserve selection if editing
-                    const currentVal = select.value;
-                    select.innerHTML = categories.map(c => `<option value="${c.category_id}">${c.category_name}</option>`).join('');
-                    if (currentVal) select.value = currentVal;
+                    if (categories.length === 0) {
+                        select.innerHTML = '<option value="" disabled>No categories available</option>';
+                    } else {
+                        select.innerHTML = categories.map(c => `<option value="${c.category_id}">${c.category_name}</option>`).join('');
+                    }
                 }
             } catch (err) {
                 console.error("Failed to load categories for select", err);
+                const select = document.getElementById('productCategory');
+                if (select) select.innerHTML = '<option value="" disabled>Error loading categories</option>';
             }
         }
 

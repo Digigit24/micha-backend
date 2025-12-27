@@ -261,9 +261,11 @@
                 const product = item.product;
                 const price = product.product_discount;
                 subtotal += price * item.quantity;
-                const imgUrl = product.product_image && product.product_image.length > 0
-                    ? `http://localhost:3000/${product.product_image[0]}`
-                    : 'https://via.placeholder.com/100';
+                let imgUrl = 'https://via.placeholder.com/100';
+                if (product.product_image && product.product_image.length > 0) {
+                    const path = product.product_image[0];
+                    imgUrl = path.startsWith('http') ? path : `http://localhost:3000/${path}`;
+                }
 
                 return `
                     <div class="cart-item">

@@ -161,9 +161,11 @@
         function renderProducts(products) {
             const grid = document.getElementById('productsGrid');
             grid.innerHTML = products.map(product => {
-                const imgUrl = product.product_image && product.product_image.length > 0
-                    ? `http://localhost:3000/${product.product_image[0]}`
-                    : 'https://via.placeholder.com/300x250/1e293b/94a3b8?text=No+Image';
+                let imgUrl = 'https://via.placeholder.com/300x250/1e293b/94a3b8?text=No+Image';
+                if (product.product_image && product.product_image.length > 0) {
+                    const path = product.product_image[0];
+                    imgUrl = path.startsWith('http') ? path : `http://localhost:3000/${path}`;
+                }
 
                 const discountBadge = product.product_discount_per > 0
                     ? `<span class="discount-badge">-${product.product_discount_per}% OFF</span>`

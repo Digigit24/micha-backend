@@ -6,7 +6,7 @@ const createCategory = async (req, res) => {
         let iconPath = req.body.icon; // Fallback or text input
 
         if (req.file) {
-            iconPath = req.file.path.replace(/\\/g, "/"); // normalize path
+            iconPath = req.file.location;
         }
 
         const isActive = active === 'true' || active === true || active === 'on';
@@ -50,7 +50,7 @@ const updateCategory = async (req, res) => {
         };
 
         if (req.file) {
-            dataToUpdate.icon = req.file.path.replace(/\\/g, "/");
+            dataToUpdate.icon = req.file.location;
         }
 
         const updatedCategory = await prisma.category.update({
