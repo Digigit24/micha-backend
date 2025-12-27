@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Shopping Cart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        if (window.location.hostname === '127.0.0.1') {
+            window.location.href = window.location.href.replace('127.0.0.1', 'localhost');
+        }
+    </script>
+    <style>
+        .cart-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            margin-top: 80px;
+            /* Navbar height */
+        }
+
+        .cart-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary);
+        }
+
+        .cart-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .cart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cart-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .cart-item {
+            display: flex;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .cart-item img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #eee;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .item-price {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .quantity-badge {
+            background: var(--bg-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        .remove-btn {
+            color: var(--error);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: underline;
+        }
+
+        /* Summary */
+        .cart-summary {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .checkout-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .empty-cart {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 4rem;
+            color: var(--text-muted);
+        }
+
+        .qty-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--bg-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .qty-btn:hover:not(:disabled) {
+            background: var(--border);
+        }
+
+        .qty-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Global Loader -->
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">MICHA</a>
+        <div class="nav-menu">
+            <a href="index.html">Home</a>
+            <a href="index.html#products">Shop</a>
+            <a href="cart.html" class="active">Cart</a>
+        </div>
+        <div class="nav-icons">
+            <a href="login.html" id="authLink"
+                style="font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-main);">
+                Log In
+            </a>
+        </div>
+    </nav>
+
+    <div class="cart-container">
+        <h1 class="cart-title">Your Cart</h1>
+
+        <div class="cart-grid" id="cartContent">
+            <!-- Populated by JS -->
+            <div class="empty-cart">Loading cart...</div>
+        </div>
+    </div>
+
+    <script>
+        const loaderOverlay = document.getElementById('loaderOverlay');
+        function showLoader() { loaderOverlay.classList.add('visible'); }
+        function hideLoader() { loaderOverlay.classList.remove('visible'); }
+
+        async function loadCart() {
+            showLoader();
+            try {
+                const response = await fetch('http://localhost:3000/cart', {
+                    credentials: 'include'
+                });
+
+                if (response.status === 401) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!response.ok) throw new Error('Failed to load cart');
+
+                const cartItems = await response.json();
+                renderCart(cartItems);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('cartContent').innerHTML = `<div class="empty-cart">Failed to load cart. <br><button onclick="loadCart()" style="margin-top:1rem; padding:0.5rem 1rem;">Retry</button></div>`;
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function renderCart(items) {
+            const container = document.getElementById('cartContent');
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <h2>Your cart is empty</h2>
+                        <a href="index.html" style="color: var(--primary); margin-top: 1rem; display: inline-block;">Continue Shopping</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let subtotal = 0;
+            const itemsHtml = items.map(item => {
+                const product = item.product;
+                const price = product.product_discount;
+                subtotal += price * item.quantity;
+                const imgUrl = product.product_image && product.product_image.length > 0
+                    ? `http://localhost:3000/${product.product_image[0]}`
+                    : 'https://via.placeholder.com/100';
+
+                return `
+                    <div class="cart-item">
+                        <img src="${imgUrl}" alt="${product.product_title}">
+                        <div class="item-details">
+                            <div class="item-title">${product.product_title}</div>
+                            <div class="item-price">$${price}</div>
+                            <div class="item-controls">
+                                <div class="quantity-controls" style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1rem;">
+                                    <button class="qty-btn" onclick="updateQuantity(${item.cart_id}, ${item.quantity - 1})" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
+                                    <span class="quantity-value" style="min-width: 20px; text-align: center; font-weight: 500;">${item.quantity}</span>
+                                    <button class="qty-btn" onclick="updateQuantity(${item.cart_id}, ${item.quantity + 1})">+</button>
+                                </div>
+                                <button class="remove-btn" onclick="removeItem(${item.cart_id})">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const summaryHtml = `
+                <div class="cart-summary">
+                    <h3 style="margin-bottom: 1.5rem;">Order Summary</h3>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>$${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                    </div>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span>$${subtotal.toFixed(2)}</span>
+                    </div>
+                    <button class="checkout-btn" onclick="alert('Checkout feature coming soon!')">Proceed to Checkout</button>
+                </div>
+            `;
+
+            container.innerHTML = `
+                <div class="cart-items">
+                    ${itemsHtml}
+                </div>
+                ${summaryHtml}
+            `;
+        }
+
+        async function updateQuantity(cartId, newQty) {
+            if (newQty < 1) return;
+
+            showLoader();
+            try {
+                const response = await fetch(`http://localhost:3000/cart/${cartId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ quantity: newQty })
+                });
+
+                if (response.ok) {
+                    loadCart();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to update cart');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Something went wrong');
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function removeItem(cartId) {
+            if (!confirm('Remove this item?')) return;
+
+            showLoader();
+            try {
+                const response = await fetch(`http://localhost:3000/cart/${cartId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    loadCart(); // Reload
+                } else {
+                    alert('Failed to remove item');
+                }
+            } catch (error) {
+                console.error(error);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // Auth Check (Same as other pages)
+        async function checkAuth() {
+            try {
+                const response = await fetch('http://localhost:3000/users/profile', { credentials: 'include' });
+                if (response.ok) {
+                    const authLink = document.getElementById('authLink');
+                    if (authLink) { authLink.textContent = 'Profile'; authLink.href = 'profile.html'; }
+                }
+            } catch (e) { }
+        }
+
+        window.onload = () => {
+            checkAuth();
+            loadCart();
+        };
+    </script>
+</body>
+
+</html>

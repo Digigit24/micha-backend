@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id   Int      @id @default(autoincrement())
+  username  String
+  email     String   @unique
+  phone     String
+  password  String
+  address   String
+  pincode   String
+  createdAt DateTime @default(now())
+  cart      Cart[]
+}
+
+model Category {
+  category_id          Int       @id @default(autoincrement())
+  category_name        String
+  category_description String
+  icon                 String
+  active               Boolean   @default(true)
+  products             Product[]
+}
+
+model Product {
+  product_id           Int      @id @default(autoincrement())
+  product_title        String
+  product_description  String
+  product_mrp          Float
+  product_discount     Float
+  product_discount_per Float
+  product_feature      String
+  product_available    Boolean
+  product_image        String[]
+  product_tag          String
+
+  category_id Int
+  category    Category @relation(fields: [category_id], references: [category_id])
+  cart        Cart[]
+}
+
+model Cart {
+  cart_id    Int     @id @default(autoincrement())
+  quantity   Int     @default(1)
+  
+  user_id    Int
+  user       User    @relation(fields: [user_id], references: [user_id])
+  
+  product_id Int
+  product    Product @relation(fields: [product_id], references: [product_id])
+
+  @@unique([user_id, product_id]) // Prevent duplicate entries for same product/user
+}
+
+model Admin {
+  admin_id       Int    @id @default(autoincrement())
+  admin_name     String
+  admin_email    String @unique
+  admin_password String
+}

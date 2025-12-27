@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        if (window.location.hostname === '127.0.0.1') {
+            window.location.hostname = 'localhost';
+        }
+    </script>
+</head>
+
+<body>
+    <!-- Global Loader -->
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <div class="auth-body">
+        <div class="container">
+            <div class="card">
+                <h2>Welcome Back</h2>
+                <p class="subtitle">Enter your credentials to access the dashboard</p>
+
+                <div id="message" class="message"></div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required placeholder="john@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required placeholder="••••••••">
+                    </div>
+
+                    <button type="submit">Log In</button>
+                </form>
+
+                <div class="link-text">
+                    Don't have an account? <a href="admin_signup.html">Sign up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loaderOverlay = document.getElementById('loaderOverlay');
+
+        function showLoader() {
+            loaderOverlay.classList.add('visible');
+        }
+
+        function hideLoader() {
+            loaderOverlay.classList.remove('visible');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageEl = document.getElementById('message');
+            const submitBtn = e.target.querySelector('button');
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                showLoader();
+                // submitBtn.textContent = 'Logging in...'; // Loader replaces this need
+
+                const response = await fetch('http://localhost:3000/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        admin_email: email,
+                        admin_password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageEl.textContent = 'Login successful!';
+                    messageEl.className = 'message success';
+                    // Store admin details if needed
+                    localStorage.setItem('admin', JSON.stringify(data.admin));
+                    // Redirect to dashboard or home (placeholder)
+                    window.location.href = 'dashboard.html';
+                } else {
+                    throw new Error(data.message || 'Login failed');
+                }
+            } catch (error) {
+                messageEl.textContent = error.message;
+                messageEl.className = 'message error';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Log In';
+            } finally {
+                hideLoader();
+            }
+        });
+    </script>
+</body>
+
+</html>

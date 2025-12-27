@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Sign Up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        if (window.location.hostname === '127.0.0.1') {
+            window.location.hostname = 'localhost';
+        }
+    </script>
+</head>
+
+<body>
+    <div class="auth-body">
+        <div class="container">
+            <div class="card">
+                <h2>Create Account</h2>
+                <p class="subtitle">Join as a new administrator</p>
+
+                <div id="message" class="message"></div>
+
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" required placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required placeholder="john@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required placeholder="••••••••">
+                    </div>
+
+                    <button type="submit">Create Account</button>
+                </form>
+
+                <div class="link-text">
+                    Already have an account? <a href="admin_login.html">Log in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageEl = document.getElementById('message');
+            const submitBtn = e.target.querySelector('button');
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+
+                const response = await fetch('http://localhost:3000/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        admin_name: name,
+                        admin_email: email,
+                        admin_password: password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageEl.textContent = 'Account created successfully! Redirecting...';
+                    messageEl.className = 'message success';
+                    setTimeout(() => {
+                        window.location.href = 'admin_login.html';
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'Failed to create account');
+                }
+            } catch (error) {
+                messageEl.textContent = error.message;
+                messageEl.className = 'message error';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            }
+        });
+    </script>
+</body>
+
+</html>

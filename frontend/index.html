@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micha Store | Premium Shopping</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        if (window.location.hostname === '127.0.0.1') {
+            window.location.href = window.location.href.replace('127.0.0.1', 'localhost');
+        }
+    </script>
+</head>
+
+<body>
+    <!-- Global Loader -->
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">MICHA</a>
+        <div class="nav-menu">
+            <a href="index.html" class="active">Home</a>
+            <a href="#products">Shop</a>
+            <a href="#">Categories</a> <!-- Placeholder -->
+            <a href="#">About</a>
+        </div>
+        <div class="nav-icons">
+            <a href="login.html" id="authLink"
+                style="font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-main);">
+                Log In
+            </a>
+            <div class="cart-icon" onclick="window.location.href='cart.html'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <div class="cart-count" id="cartCount">0</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <h1>Welcome to Micha Store</h1>
+        <p>Discover premium products curated just for you. Quality meets style.</p>
+    </header>
+
+    <!-- Products Section -->
+    <section id="products" class="products-section">
+        <h2 class="section-title">Featured Products</h2>
+        <div class="products-grid" id="productsGrid">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <script>
+        // Loader Logic
+        const loaderOverlay = document.getElementById('loaderOverlay');
+        function showLoader() {
+            loaderOverlay.classList.add('visible');
+        }
+        function hideLoader() {
+            loaderOverlay.classList.remove('visible');
+        }
+
+        // Check Auth Status ( Cookie Based )
+        async function checkAuth() {
+            try {
+                // Try to fetch profile to check if we have a valid cookie
+                const response = await fetch('http://localhost:3000/users/profile', {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const authLink = document.getElementById('authLink');
+                    if (authLink) {
+                        authLink.textContent = 'Profile';
+                        authLink.href = 'profile.html';
+                    }
+                    // If auth, load cart
+                    fetchCartCount();
+                }
+            } catch (error) {
+                console.log("Not logged in");
+            }
+        }
+
+        async function addToCart(productId) {
+            // Relies entirely on HttpOnly cookie provided by browser via credentials: 'include'
+            try {
+                showLoader();
+                const response = await fetch('http://localhost:3000/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ product_id: productId })
+                });
+
+                if (response.status === 401) {
+                    alert('Please log in to add items to your cart.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (response.ok) {
+                    alert('Product added to cart!');
+                    fetchCartCount();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to add to cart');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Something went wrong');
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function fetchCartCount() {
+            try {
+                const response = await fetch('http://localhost:3000/cart', {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const cart = await response.json();
+                    document.getElementById('cartCount').textContent = cart.reduce((acc, item) => acc + item.quantity, 0);
+                }
+            } catch (e) {
+                console.error("Failed to fetch cart count", e);
+            }
+        }
+
+        // Fetch Products
+        async function fetchProducts() {
+            showLoader();
+            try {
+                const response = await fetch('http://localhost:3000/products');
+                if (!response.ok) throw new Error('Failed to load products');
+                const products = await response.json();
+                renderProducts(products);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('productsGrid').innerHTML = '<p style="text-align: center; grid-column: 1/-1;">Failed to load products. Please try again later.</p>';
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = products.map(product => {
+                const imgUrl = product.product_image && product.product_image.length > 0
+                    ? `http://localhost:3000/${product.product_image[0]}`
+                    : 'https://via.placeholder.com/300x250/1e293b/94a3b8?text=No+Image';
+
+                const discountBadge = product.product_discount_per > 0
+                    ? `<span class="discount-badge">-${product.product_discount_per}% OFF</span>`
+                    : '';
+
+                return `
+                    <div class="product-card">
+                        <div class="product-img-container">
+                            <img src="${imgUrl}" alt="${product.product_title}" class="product-img">
+                        </div>
+                        <div class="product-details">
+                            <div class="product-category">${product.category ? product.category.category_name : 'General'}</div>
+                            <h3 class="product-title" title="${product.product_title}">${product.product_title}</h3>
+                            <div class="product-price">
+                                <span class="current-price">$${product.product_discount}</span>
+                                ${product.product_mrp > product.product_discount ? `<span class="original-price">$${product.product_mrp}</span>` : ''}
+                                ${discountBadge}
+                            </div>
+                            <button class="add-to-cart-btn" onclick="addToCart(${product.product_id})" ${!product.product_available ? 'disabled' : ''}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                ${product.product_available ? 'Add to Cart' : 'Out of Stock'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCartCount();
+            checkAuth();
+            fetchProducts();
+        });
+    </script>
+</body>
+
+</html>
