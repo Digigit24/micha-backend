@@ -29,13 +29,23 @@ const createProduct = async (req, res) => {
                 product_discount_per: Math.round(((parseFloat(product_mrp) - parseFloat(product_discount)) / parseFloat(product_mrp)) * 100),
                 product_feature,
                 product_available: req.body.product_available === 'true' || req.body.product_available === 'on',
-                product_image: product_images,
+                images: {
+                    create: product_images.map(url => ({ image_url: url }))
+                },
                 product_tag,
                 category_id: parseInt(category_id)
-            }
+            },
+            include: { images: true }
         });
 
-        res.status(201).json(product);
+        // Format response to match old structure if needed or keep new structure
+        // Let's flatten for frontend compatibility: product_image: [urls]
+        const formattedProduct = {
+            ...product,
+            product_image: product.images.map(img => img.image_url)
+        };
+
+        res.status(201).json(formattedProduct);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -44,9 +54,19 @@ const createProduct = async (req, res) => {
 const getProducts = async (req, res) => {
     try {
         const products = await prisma.product.findMany({
-            include: { category: true } // Include category details
+            include: {
+                category: true,
+                images: true
+            }
         });
-        res.status(200).json(products);
+
+        // Transform to include product_image array for frontend compatibility
+        const formattedProducts = products.map(product => ({
+            ...product,
+            product_image: product.images.map(img => img.image_url)
+        }));
+
+        res.status(200).json(formattedProducts);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -66,7 +86,10 @@ const updateProduct = async (req, res) => {
             product_available
         } = req.body;
 
-        let dataToUpdate = {
+        // For simplicity in this update, we often replace all images if new are provided
+        // Or we append. Let's assume replace if new images provided, else keep.
+        // Prisma update with relation:
+        const updateData = {
             product_title,
             product_description,
             product_mrp: parseFloat(product_mrp),
@@ -79,15 +102,27 @@ const updateProduct = async (req, res) => {
         };
 
         if (req.files && req.files.length > 0) {
-            dataToUpdate.product_image = req.files.map(file => file.location);
+            const newImages = req.files.map(file => file.location);
+            // Delete old images and add new ones (Transaction or deleteMany then create)
+            // Ideally should delete from S3 too, but for now just DB logic
+            updateData.images = {
+                deleteMany: {},
+                create: newImages.map(url => ({ image_url: url }))
+            };
         }
 
         const product = await prisma.product.update({
             where: { product_id: parseInt(id) },
-            data: dataToUpdate
+            data: updateData,
+            include: { images: true }
         });
 
-        res.json(product);
+        const formattedProduct = {
+            ...product,
+            product_image: product.images.map(img => img.image_url)
+        };
+
+        res.json(formattedProduct);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
@@ -118,7 +153,8 @@ const getProductsByCategoryName = async (req, res) => {
                 }
             },
             include: {
-                category: true
+                category: true,
+                images: true
             }
         });
 
@@ -126,7 +162,12 @@ const getProductsByCategoryName = async (req, res) => {
             return res.status(404).json({ message: "No products found for this category" });
         }
 
-        res.json(products);
+        const formattedProducts = products.map(product => ({
+            ...product,
+            product_image: product.images.map(img => img.image_url)
+        }));
+
+        res.json(formattedProducts);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

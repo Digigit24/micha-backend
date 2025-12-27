@@ -706,6 +706,40 @@
 			"typeName": "camera"
 		},
 		{
+			"x": 1358.0123645379335,
+			"y": 535.178893983253,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:4OBrdSlBNKLi-lb26YS1X",
+			"type": "line",
+			"props": {
+				"dash": "draw",
+				"size": "m",
+				"color": "black",
+				"spline": "line",
+				"points": {
+					"a1": {
+						"id": "a1",
+						"index": "a1",
+						"x": 0,
+						"y": 0
+					},
+					"a23GwxiV": {
+						"id": "a23GwxiV",
+						"index": "a23GwxiV",
+						"x": 289.2246226747543,
+						"y": 2.401723944112746
+					}
+				},
+				"scale": 1
+			},
+			"parentId": "page:page",
+			"index": "awhR04LV",
+			"typeName": "shape"
+		},
+		{
 			"x": -160.47037181607465,
 			"y": 555.8931265038275,
 			"rotation": 0,
@@ -925,6 +959,48 @@
 			"typeName": "binding"
 		},
 		{
+			"x": 1436.8918850191108,
+			"y": 509.2504424930903,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:glXNlJ1yB3PC5Q5Qtfv0J",
+			"type": "text",
+			"props": {
+				"color": "black",
+				"size": "s",
+				"w": 116.06500244140625,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"attrs": {
+						"dir": "auto"
+					},
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "order_items"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "axqdA2IV",
+			"typeName": "shape"
+		},
+		{
 			"x": 1027.740374535967,
 			"y": -224.82954892663767,
 			"rotation": 0,
@@ -1082,12 +1158,12 @@
 			"typeName": "shape"
 		},
 		{
-			"editingShapeId": "shape:5Xyq71cPs9T9x7X08wdzo",
+			"editingShapeId": null,
 			"croppingShapeId": null,
 			"selectedShapeIds": [
-				"shape:5Xyq71cPs9T9x7X08wdzo"
+				"shape:glXNlJ1yB3PC5Q5Qtfv0J"
 			],
-			"hoveredShapeId": "shape:5Xyq71cPs9T9x7X08wdzo",
+			"hoveredShapeId": null,
 			"erasingShapeIds": [],
 			"hintingShapeIds": [],
 			"focusedGroupId": null,
@@ -1095,6 +1171,43 @@
 			"id": "instance_page_state:page:page",
 			"pageId": "page:page",
 			"typeName": "instance_page_state"
+		},
+		{
+			"x": 1363.405784734247,
+			"y": 500.1213197997446,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:TPPMOsmqwyv3NGU7aWOcI",
+			"type": "geo",
+			"props": {
+				"w": 283.8312024784409,
+				"h": 290.9523619797817,
+				"geo": "rectangle",
+				"dash": "draw",
+				"growY": 0,
+				"url": "",
+				"scale": 1,
+				"color": "black",
+				"labelColor": "black",
+				"fill": "none",
+				"size": "m",
+				"font": "draw",
+				"align": "middle",
+				"verticalAlign": "middle",
+				"richText": {
+					"type": "doc",
+					"content": [
+						{
+							"type": "paragraph"
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "avSBbDWV",
+			"typeName": "shape"
 		},
 		{
 			"meta": {},
@@ -1288,7 +1401,7 @@
 			"props": {
 				"color": "black",
 				"size": "s",
-				"w": 206.6875,
+				"w": 206.69500732421875,
 				"font": "draw",
 				"textAlign": "start",
 				"autoSize": true,
@@ -1403,7 +1516,7 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "product_image"
+									"text": "product_image(FK)"
 								}
 							]
 						},
@@ -2427,6 +2540,108 @@
 			"typeName": "shape"
 		},
 		{
+			"x": 1388.3507603448193,
+			"y": 564.5284073692727,
+			"rotation": 0,
+			"isLocked": false,
+			"opacity": 1,
+			"meta": {},
+			"id": "shape:bqAS1Oe0lotOvPzPHCs7C",
+			"type": "text",
+			"props": {
+				"color": "black",
+				"size": "m",
+				"w": 239.35000610351562,
+				"font": "draw",
+				"textAlign": "start",
+				"autoSize": true,
+				"scale": 1,
+				"richText": {
+					"type": "doc",
+					"attrs": {
+						"dir": "auto"
+					},
+					"content": [
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "order_item_id (PK)"
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "order_id (FK)"
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "product_id (FK)"
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "product_name"
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "price"
+								}
+							]
+						},
+						{
+							"type": "paragraph",
+							"attrs": {
+								"dir": "auto"
+							},
+							"content": [
+								{
+									"type": "text",
+									"text": "quantity"
+								}
+							]
+						}
+					]
+				}
+			},
+			"parentId": "page:page",
+			"index": "auv6jS1V",
+			"typeName": "shape"
+		},
+		{
 			"x": 1024.4114315804588,
 			"y": -53.94120881508056,
 			"rotation": 0,
@@ -2968,11 +3183,14 @@
 		{
 			"followingUserId": null,
 			"opacityForNextShape": 1,
-			"stylesForNextShape": {},
+			"stylesForNextShape": {
+				"tldraw:geo": "rectangle",
+				"tldraw:size": "s"
+			},
 			"brush": null,
 			"scribbles": [],
 			"cursor": {
-				"type": "default",
+				"type": "move",
 				"rotation": 0
 			},
 			"isFocusMode": false,
@@ -3168,18 +3386,6 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "product_id (FK)"
-								}
-							]
-						},
-						{
-							"type": "paragraph",
-							"attrs": {
-								"dir": "auto"
-							},
-							"content": [
-								{
-									"type": "text",
 									"text": "user_id (FK)"
 								}
 							]
@@ -3192,43 +3398,7 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "userName"
-								}
-							]
-						},
-						{
-							"type": "paragraph",
-							"attrs": {
-								"dir": "auto"
-							},
-							"content": [
-								{
-									"type": "text",
-									"text": "productName"
-								}
-							]
-						},
-						{
-							"type": "paragraph",
-							"attrs": {
-								"dir": "auto"
-							},
-							"content": [
-								{
-									"type": "text",
-									"text": "price"
-								}
-							]
-						},
-						{
-							"type": "paragraph",
-							"attrs": {
-								"dir": "auto"
-							},
-							"content": [
-								{
-									"type": "text",
-									"text": "quantity"
+									"text": "total_amount"
 								}
 							]
 						},
@@ -3288,7 +3458,7 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "order_date"
+									"text": "order_status"
 								}
 							]
 						},
@@ -3300,7 +3470,7 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "co-ordinates"
+									"text": "order_date"
 								}
 							]
 						}

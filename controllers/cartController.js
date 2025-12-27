@@ -50,10 +50,21 @@ const getCart = async (req, res) => {
         const cartItems = await prisma.cart.findMany({
             where: { user_id: parseInt(user_id) },
             include: {
-                product: true
+                product: {
+                    include: { images: true }
+                }
             }
         });
-        res.json(cartItems);
+
+        const formattedItems = cartItems.map(item => ({
+            ...item,
+            product: {
+                ...item.product,
+                product_image: item.product.images.map(img => img.image_url)
+            }
+        }));
+
+        res.json(formattedItems);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -83,10 +94,18 @@ const updateCart = async (req, res) => {
         const updatedItem = await prisma.cart.update({
             where: { cart_id: parseInt(id) },
             data: { quantity: parseInt(quantity) },
-            include: { product: true }
+            include: { product: { include: { images: true } } }
         });
 
-        res.json({ message: "Cart updated", item: updatedItem });
+        const formattedItem = {
+            ...updatedItem,
+            product: {
+                ...updatedItem.product,
+                product_image: updatedItem.product.images.map(img => img.image_url)
+            }
+        };
+
+        res.json({ message: "Cart updated", item: formattedItem });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

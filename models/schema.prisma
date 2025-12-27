@@ -43,12 +43,21 @@ model Product {
   product_discount_per Float
   product_feature      String
   product_available    Boolean
-  product_image        String[]
+  // product_image removed, moved to Image model
   product_tag          String
 
   category_id Int
   category    Category @relation(fields: [category_id], references: [category_id])
   cart        Cart[]
+  images      Image[]
+}
+
+model Image {
+  image_id   Int     @id @default(autoincrement())
+  image_url  String
+  
+  product_id Int
+  product    Product @relation(fields: [product_id], references: [product_id], onDelete: Cascade)
 }
 
 model Cart {
