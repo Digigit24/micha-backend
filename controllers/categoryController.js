@@ -78,9 +78,23 @@ const deleteCategory = async (req, res) => {
     }
 };
 
+const getPublicCategories = async (req, res) => {
+    try {
+        const categories = await prisma.category.findMany({
+            where: {
+                active: true
+            }
+        });
+        res.json(categories);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 module.exports = {
     createCategory,
     getCategories,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    getPublicCategories
 };

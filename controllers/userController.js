@@ -111,9 +111,20 @@ const getUserProfile = async (req, res) => {
     }
 };
 
+const logoutUser = (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: false, // Match the setting used in login
+        sameSite: "Lax",
+        path: "/"
+    });
+    res.json({ message: "Logged out successfully" });
+};
+
 module.exports = {
     createUser,
     getUsers,
     loginUser,
-    getUserProfile
+    getUserProfile,
+    logoutUser
 };

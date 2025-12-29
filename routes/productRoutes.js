@@ -1,5 +1,5 @@
 const express = require("express");
-const { createProduct, getProducts, updateProduct, deleteProduct, getProductsByCategoryName } = require("../controllers/productController");
+const { createProduct, getProducts, updateProduct, deleteProduct, getProductsByCategoryName, getPublicProducts, getPublicProductById } = require("../controllers/productController");
 const { authenticateAdmin } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadMiddleware");
 
@@ -119,7 +119,9 @@ router.post("/", authenticateAdmin, upload.array('product_image', 10), createPro
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.get("/", getProducts); // Public
+router.get("/", authenticateAdmin, getProducts); // Admin only
+router.get("/public", getPublicProducts); // Public access
+router.get("/public/:id", getPublicProductById); // Public access single product
 
 /**
  * @swagger

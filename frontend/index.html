@@ -33,7 +33,7 @@
         </div>
         <div class="nav-icons">
             <a href="login.html" id="authLink"
-                style="font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-main);">
+                style="font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-main); display: none;">
                 Log In
             </a>
             <div class="cart-icon" onclick="window.location.href='cart.html'">
@@ -53,6 +53,14 @@
         <h1>Welcome to Micha Store</h1>
         <p>Discover premium products curated just for you. Quality meets style.</p>
     </header>
+
+    <!-- My Orders Section (Visible only when logged in) -->
+    <section id="myOrdersSection" class="products-section" style="display: none; background: rgba(0,0,0,0.02);">
+        <h2 class="section-title">Your Recent Orders</h2>
+        <div id="ordersGrid" class="orders-list" style="max-width: 800px; margin: 0 auto;">
+            <!-- Populated by JS -->
+        </div>
+    </section>
 
     <!-- Products Section -->
     <section id="products" class="products-section">
@@ -74,6 +82,9 @@
 
         // Check Auth Status ( Cookie Based )
         async function checkAuth() {
+            const authLink = document.getElementById('authLink');
+            if (authLink) authLink.style.display = 'none'; // Hide explicitly while checking
+
             try {
                 // Try to fetch profile to check if we have a valid cookie
                 const response = await fetch('http://localhost:3000/users/profile', {
@@ -81,16 +92,29 @@
                 });
 
                 if (response.ok) {
-                    const authLink = document.getElementById('authLink');
                     if (authLink) {
                         authLink.textContent = 'Profile';
                         authLink.href = 'profile.html';
+                        authLink.style.display = 'inline-block'; // Show as profile
                     }
                     // If auth, load cart
                     fetchCartCount();
+                    fetchOrders();
+                } else {
+                    // Not auth
+                    if (authLink) {
+                        authLink.textContent = 'Log In';
+                        authLink.href = 'login.html';
+                        authLink.style.display = 'inline-block'; // Show as login
+                    }
                 }
             } catch (error) {
                 console.log("Not logged in");
+                if (authLink) {
+                    authLink.textContent = 'Log In';
+                    authLink.href = 'login.html';
+                    authLink.style.display = 'inline-block'; // Show as login
+                }
             }
         }
 
@@ -142,11 +166,64 @@
             }
         }
 
+        async function fetchOrders() {
+            const section = document.getElementById('myOrdersSection');
+            const grid = document.getElementById('ordersGrid');
+
+            try {
+                const res = await fetch('http://localhost:3000/orders/my-orders', { credentials: 'include' });
+                if (!res.ok) return; // If failed (e.g. 401), just don't show the section
+
+                const orders = await res.json();
+                if (orders.length === 0) return; // Don't show if no orders
+
+                section.style.display = 'block'; // Show section
+
+                grid.innerHTML = orders.map(order => {
+                    const statusClass =
+                        order.order_status === 'DELIVERED' ? 'status-success' :
+                            order.order_status === 'CANCELLED' ? 'status-cancelled' : 'status-pending';
+
+                    const date = new Date(order.order_date).toLocaleDateString();
+                    const itemCount = order.order_items ? order.order_items.length : 0;
+
+                    return `
+                    <div class="order-item" style="background: var(--card-bg);">
+                        <div class="order-header">
+                            <span class="order-id">Order #${order.order_id}</span>
+                            <span class="order-date">${date}</span>
+                        </div>
+                        <div class="order-info">
+                            <div>
+                                <span class="order-label">Total Amount</span>
+                                <span class="order-value">$${order.total_amount}</span>
+                            </div>
+                            <div>
+                                <span class="order-label">Status</span>
+                                <span class="status-badge ${statusClass}">${order.order_status}</span>
+                            </div>
+                            <div>
+                                <span class="order-label" style="text-align: right;">Payment</span>
+                                <span class="order-value" style="font-size: 0.85rem; text-align: right;">${order.payment_method}</span>
+                            </div>
+                        </div>
+                        <div class="order-items-preview">
+                            ${itemCount} item(s) purchased
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error("Failed to load orders", error);
+            }
+        }
+
         // Fetch Products
         async function fetchProducts() {
             showLoader();
             try {
-                const response = await fetch('http://localhost:3000/products');
+                const response = await fetch('http://localhost:3000/products/public');
                 if (!response.ok) throw new Error('Failed to load products');
                 const products = await response.json();
                 renderProducts(products);
@@ -173,12 +250,12 @@
 
                 return `
                     <div class="product-card">
-                        <div class="product-img-container">
+                        <div class="product-img-container" onclick="window.location.href='product_details.html?id=${product.product_id}'" style="cursor: pointer;">
                             <img src="${imgUrl}" alt="${product.product_title}" class="product-img">
                         </div>
                         <div class="product-details">
                             <div class="product-category">${product.category ? product.category.category_name : 'General'}</div>
-                            <h3 class="product-title" title="${product.product_title}">${product.product_title}</h3>
+                            <h3 class="product-title" title="${product.product_title}" onclick="window.location.href='product_details.html?id=${product.product_id}'" style="cursor: pointer;">${product.product_title}</h3>
                             <div class="product-price">
                                 <span class="current-price">$${product.product_discount}</span>
                                 ${product.product_mrp > product.product_discount ? `<span class="original-price">$${product.product_mrp}</span>` : ''}

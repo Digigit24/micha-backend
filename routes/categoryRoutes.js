@@ -1,5 +1,5 @@
 const express = require("express");
-const { createCategory, getCategories, updateCategory, deleteCategory } = require("../controllers/categoryController");
+const { createCategory, getCategories, updateCategory, deleteCategory, getPublicCategories } = require("../controllers/categoryController");
 const { authenticateAdmin } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadMiddleware");
 
@@ -76,7 +76,8 @@ router.post("/", authenticateAdmin, upload.single('icon'), createCategory);
  *               items:
  *                 $ref: '#/components/schemas/Category'
  */
-router.get("/", getCategories);
+router.get("/", authenticateAdmin, getCategories);
+router.get("/public", getPublicCategories);
 
 /**
  * @swagger

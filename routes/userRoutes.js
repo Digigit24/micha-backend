@@ -1,7 +1,7 @@
 const express = require("express");
 
 
-const { createUser, getUsers, loginUser, getUserProfile } = require("../controllers/userController");
+const { createUser, getUsers, loginUser, getUserProfile, logoutUser } = require("../controllers/userController");
 const { authenticateAdmin, authenticateUser } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
@@ -118,6 +118,18 @@ router.post("/login", loginUser);
  *         description: Unauthorized
  */
 router.get("/profile", authenticateUser, getUserProfile);
+
+/**
+ * @swagger
+ * /users/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ */
+router.post("/logout", logoutUser);
 
 /**
  * @swagger

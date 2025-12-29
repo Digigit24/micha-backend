@@ -150,7 +150,8 @@ const getProductsByCategoryName = async (req, res) => {
                         equals: categoryName,
                         mode: 'insensitive' // Case-insensitive search
                     }
-                }
+                },
+                product_available: true
             },
             include: {
                 category: true,
@@ -173,10 +174,62 @@ const getProductsByCategoryName = async (req, res) => {
     }
 };
 
+const getPublicProducts = async (req, res) => {
+    try {
+        const products = await prisma.product.findMany({
+            where: {
+                product_available: true
+            },
+            include: {
+                category: true,
+                images: true
+            }
+        });
+
+        const formattedProducts = products.map(product => ({
+            ...product,
+            product_image: product.images.map(img => img.image_url)
+        }));
+
+        res.status(200).json(formattedProducts);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const getPublicProductById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const product = await prisma.product.findFirst({
+            where: {
+                product_id: parseInt(id),
+                product_available: true
+            },
+            include: {
+                category: true,
+                images: true
+            }
+        });
+
+        if (!product) return res.status(404).json({ error: "Product not found" });
+
+        const formattedProduct = {
+            ...product,
+            product_image: product.images.map(img => img.image_url)
+        };
+
+        res.json(formattedProduct);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 module.exports = {
     createProduct,
     getProducts,
     updateProduct,
     deleteProduct,
-    getProductsByCategoryName
+    getProductsByCategoryName,
+    getPublicProducts,
+    getPublicProductById
 };

@@ -1,5 +1,6 @@
 const express = require("express");
-const { createAdmin, getAdmins, loginAdmin } = require("../controllers/adminController");
+const { createAdmin, getAdmins, loginAdmin, verifyAdmin } = require("../controllers/adminController");
+const { authenticateAdmin } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
@@ -60,6 +61,24 @@ const router = express.Router();
  *       400:
  *         description: Bad request
  */
+router.get("/ping", (req, res) => res.send("pong"));
+
+/**
+ * @swagger
+ * /admin/verify:
+ *   get:
+ *     summary: Verify admin session
+ *     tags: [Admin]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Authenticated
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/verify", authenticateAdmin, verifyAdmin);
+
 router.post("/", createAdmin);
 
 /**

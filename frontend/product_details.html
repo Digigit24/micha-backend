@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | Micha Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Global Loader -->
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">MICHA</a>
+        <div class="nav-menu">
+            <a href="index.html">Home</a>
+            <a href="index.html#products">Shop</a>
+        </div>
+        <div class="nav-icons">
+            <a href="login.html" id="authLink"
+                style="font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-main); display: none;">
+                Log In
+            </a>
+            <div class="cart-icon" onclick="window.location.href='cart.html'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+                <div class="cart-count" id="cartCount">0</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Product Details -->
+    <div class="product-detail-container" id="productDetail">
+        <!-- Populated by JS -->
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-container">
+        <h2 class="section-title">Customer Reviews</h2>
+
+        <!-- Add Review Form -->
+        <div class="review-form" id="reviewForm" style="display: none;">
+            <h3>Write a Review</h3>
+            <div class="form-group">
+                <label>Rating</label>
+                <div class="rating-input">
+                    <span class="star-rating" data-value="1">★</span>
+                    <span class="star-rating" data-value="2">★</span>
+                    <span class="star-rating" data-value="3">★</span>
+                    <span class="star-rating" data-value="4">★</span>
+                    <span class="star-rating" data-value="5">★</span>
+                </div>
+                <input type="hidden" id="ratingValue" value="0">
+            </div>
+            <div class="form-group">
+                <label for="reviewText">Your Review</label>
+                <textarea id="reviewText" rows="4" placeholder="Share your thoughts..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="submitReview()">Submit Review</button>
+        </div>
+
+        <div id="loginPrompt" style="text-align: center; margin-bottom: 2rem; display: none;">
+            <p>Please <a href="login.html" style="color: var(--primary);">log in</a> to write a review.</p>
+        </div>
+
+        <!-- Review List -->
+        <div class="review-list" id="reviewList">
+            <p>Loading reviews...</p>
+        </div>
+    </div>
+
+    <script>
+        const loaderOverlay = document.getElementById('loaderOverlay');
+        function showLoader() { loaderOverlay.classList.add('visible'); }
+        function hideLoader() { loaderOverlay.classList.remove('visible'); }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        let isLoggedIn = false;
+
+        async function init() {
+            if (!productId) {
+                alert("Product not found");
+                window.location.href = 'index.html';
+                return;
+            }
+            showLoader();
+            await checkAuth();
+            await fetchProductDetails();
+            await fetchReviews();
+            hideLoader();
+        }
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('http://localhost:3000/users/profile', { credentials: 'include' });
+                const authLink = document.getElementById('authLink');
+                const reviewForm = document.getElementById('reviewForm');
+                const loginPrompt = document.getElementById('loginPrompt');
+
+                if (response.ok) {
+                    isLoggedIn = true;
+                    authLink.textContent = 'Profile';
+                    authLink.href = 'profile.html';
+                    authLink.style.display = 'inline-block';
+
+                    reviewForm.style.display = 'block';
+                    loginPrompt.style.display = 'none';
+                    fetchCartCount();
+                } else {
+                    authLink.textContent = 'Log In';
+                    authLink.href = 'login.html';
+                    authLink.style.display = 'inline-block';
+
+                    reviewForm.style.display = 'none';
+                    loginPrompt.style.display = 'block';
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function fetchCartCount() {
+            try {
+                const response = await fetch('http://localhost:3000/cart', { credentials: 'include' });
+                if (response.ok) {
+                    const cart = await response.json();
+                    document.getElementById('cartCount').textContent = cart.reduce((acc, item) => acc + item.quantity, 0);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function fetchProductDetails() {
+            try {
+                const res = await fetch(`http://localhost:3000/products/public/${productId}`);
+                if (!res.ok) throw new Error("Failed to load product");
+                const product = await res.json();
+
+                renderProduct(product);
+            } catch (error) {
+                document.getElementById('productDetail').innerHTML = '<p>Product not found.</p>';
+            }
+        }
+
+        function renderProduct(product) {
+            let imgUrl = 'https://via.placeholder.com/500x500/1e293b/94a3b8?text=No+Image';
+            if (product.product_image && product.product_image.length > 0) {
+                const path = product.product_image[0];
+                imgUrl = path.startsWith('http') ? path : `http://localhost:3000/${path}`;
+            }
+
+            const html = `
+                <div class="detail-img-wrapper">
+                    <img src="${imgUrl}" alt="${product.product_title}" class="detail-img">
+                </div>
+                <div class="detail-info">
+                    <div class="detail-category">${product.category ? product.category.category_name : 'General'}</div>
+                    <h1 class="detail-title">${product.product_title}</h1>
+                    
+                    <div class="detail-price-box">
+                        <span class="detail-price">$${product.product_discount}</span>
+                        ${product.product_mrp > product.product_discount ? `<span style="text-decoration: line-through; color: var(--text-muted);">$${product.product_mrp}</span>` : ''}
+                    </div>
+
+                    <p class="detail-desc">${product.product_description}</p>
+
+                    <div class="detail-actions">
+                        <button class="add-to-cart-btn detail-btn" onclick="addToCart(${product.product_id})" ${!product.product_available ? 'disabled' : ''}>
+                            ${product.product_available ? 'Add to Cart' : 'Out of Stock'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('productDetail').innerHTML = html;
+        }
+
+        async function addToCart(id) {
+            if (!isLoggedIn) {
+                window.location.href = 'login.html';
+                return;
+            }
+            try {
+                const response = await fetch('http://localhost:3000/cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ product_id: id })
+                });
+                if (response.ok) {
+                    alert('Added to cart');
+                    fetchCartCount();
+                } else {
+                    alert('Failed to add to cart');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function fetchReviews() {
+            try {
+                const res = await fetch(`http://localhost:3000/reviews/product/${productId}`);
+                const reviews = await res.json();
+
+                const list = document.getElementById('reviewList');
+                if (reviews.length === 0) {
+                    list.innerHTML = '<p style="color: var(--text-muted);">No reviews yet. Be the first to review!</p>';
+                    return;
+                }
+
+                list.innerHTML = reviews.map(r => `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <span class="review-user">${r.user.username}</span>
+                            <span class="review-date">${new Date(r.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                        <p>${r.review || ''}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Star Rating Logic
+        document.querySelectorAll('.star-rating').forEach(star => {
+            star.addEventListener('click', function () {
+                const value = this.getAttribute('data-value');
+                document.getElementById('ratingValue').value = value;
+                updateStars(value);
+            });
+        });
+
+        function updateStars(value) {
+            document.querySelectorAll('.star-rating').forEach(star => {
+                if (parseInt(star.getAttribute('data-value')) <= value) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        async function submitReview() {
+            const rating = document.getElementById('ratingValue').value;
+            const review = document.getElementById('reviewText').value;
+
+            if (rating == 0) {
+                alert("Please select a rating");
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:3000/reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        product_id: parseInt(productId),
+                        rating: parseInt(rating),
+                        review: review
+                    })
+                });
+
+                if (res.ok) {
+                    alert("Review submitted!");
+                    document.getElementById('reviewText').value = '';
+                    updateStars(0);
+                    fetchReviews();
+                } else {
+                    const data = await res.json();
+                    alert(data.error || "Failed to submit review");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Error submitting review");
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

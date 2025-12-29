@@ -57,11 +57,14 @@ const loginAdmin = async (req, res) => {
         );
 
         // Set Cookie
+        res.clearCookie("admin_token"); // Clear any existing
+
         res.cookie("admin_token", token, {
             httpOnly: true,
-            secure: false, // Set to true in production (https)
+            secure: false,
             sameSite: "Lax",
             path: "/",
+            // domain: "localhost" // Optional, sometimes helps explicit matching
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
         });
 
@@ -75,8 +78,17 @@ const loginAdmin = async (req, res) => {
     }
 }
 
+const verifyAdmin = async (req, res) => {
+    // If we reach here, the middleware has already authenticated the admin
+    res.json({
+        message: "Authenticated",
+        admin: req.admin
+    });
+};
+
 module.exports = {
     createAdmin,
     getAdmins,
-    loginAdmin
+    loginAdmin,
+    verifyAdmin
 };

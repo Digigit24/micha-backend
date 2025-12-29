@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const cookieParser = require("cookie-parser");
 const messageRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -10,11 +11,15 @@ const app = express();
 
 const cors = require("cors");
 app.use(cors({
-    origin: true, // Allow any origin
+    origin: true, // Use request origin
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    exposedHeaders: ["Set-Cookie"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.options(/.*/, cors()); // Enable pre-flight for all routes (using regex to avoid path-to-regexp error)
+
 
 app.use(express.json());
 app.use(cookieParser());
@@ -43,9 +48,17 @@ app.use("/admin", adminRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", require("./routes/orderRoutes"));
+app.use("/reviews", require("./routes/reviewRoutes"));
 
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-// Server restart trigger v6
+
+// 404 Handler for debugging
+app.use((req, res) => {
+    console.log(`404 Not Found: ${req.method} ${req.url}`);
+    res.status(404).json({ error: "Route not found" });
+});
+
+// Force Server Restart v8 - Route Refresh

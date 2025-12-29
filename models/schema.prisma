@@ -24,6 +24,7 @@ model User {
   createdAt DateTime @default(now())
   cart      Cart[]
   orders    Order[]
+  reviews   Review[]
 }
 
 model Category {
@@ -52,6 +53,7 @@ model Product {
   cart        Cart[]
   images      Image[]
   order_items OrderItem[]
+  reviews     Review[]
 }
 
 model Image {
@@ -105,4 +107,17 @@ model OrderItem {
   product_name    String
   price           Float
   quantity        Int
+}
+
+model Review {
+  review_id  Int      @id @default(autoincrement())
+  review     String
+  rating     Int
+  created_at DateTime @default(now())
+
+  user_id    Int
+  user       User    @relation(fields: [user_id], references: [user_id])
+
+  product_id Int
+  product    Product @relation(fields: [product_id], references: [product_id])
 }

@@ -6,13 +6,15 @@ const authenticateAdmin = (req, res, next) => {
         console.log("Cookies received:", req.cookies); // Debug log
 
         if (!token) {
-            return res.status(401).json({ message: "Authentication required" });
+            console.log("Token missing in request");
+            return res.status(401).json({ message: "No authentication token found" });
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET || "my_super_secret_key");
         req.admin = decoded;
         next();
     } catch (error) {
+        console.error("Token verification failed:", error.message);
         return res.status(401).json({ message: "Invalid or expired token" });
     }
 };
