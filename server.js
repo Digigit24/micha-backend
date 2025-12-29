@@ -42,9 +42,10 @@ app.use("/products", productRoutes);
 app.use("/admin", adminRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/cart", cartRoutes);
+app.use("/orders", require("./routes/orderRoutes"));
 
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-// Server restart trigger v5
+// Server restart trigger v6

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | Micha Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        if (window.location.hostname === '127.0.0.1') {
+            window.location.href = window.location.href.replace('127.0.0.1', 'localhost');
+        }
+    </script>
+    <style>
+        .checkout-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            margin-top: 80px;
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .checkout-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .order-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .order-summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .pay-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .pay-btn:hover {
+            background: var(--primary-hover);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Global Loader -->
+    <div id="loaderOverlay" class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-brand">MICHA</a>
+        <div class="nav-menu">
+            <a href="index.html">Home</a>
+            <a href="index.html#products">Shop</a>
+            <a href="cart.html">Cart</a>
+        </div>
+        <div class="nav-icons">
+            <a href="profile.html" id="authLink"
+                style="font-size: 0.9rem; font-weight: 500; text-decoration: none; color: var(--text-main);">
+                Profile
+            </a>
+        </div>
+    </nav>
+
+    <div class="checkout-container">
+        <!-- Left: Shipping Details -->
+        <div class="checkout-card">
+            <h2 class="section-title">Shipping & Contact Details</h2>
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="userName" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="userEmail" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="userPhone" required placeholder="Enter your phone number">
+                </div>
+                <div class="form-group">
+                    <label>Delivery Address</label>
+                    <textarea id="userAddress" rows="4" required placeholder="Enter your delivery address"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Pincode</label>
+                    <input type="text" id="userPincode" required>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right: Order Summary -->
+        <div class="checkout-card" style="height: fit-content;">
+            <h2 class="section-title">Order Summary</h2>
+            <div id="orderItems">
+                <!-- Items populated here -->
+                <p>Loading items...</p>
+            </div>
+
+            <div class="order-summary-row" style="margin-top: 2rem;">
+                <span>Subtotal</span>
+                <span id="subtotalPrice">--</span>
+            </div>
+            <div class="order-summary-row">
+                <span>Shipping</span>
+                <span>Free</span>
+            </div>
+            <div class="order-total">
+                <span>Total</span>
+                <span id="totalPrice">--</span>
+            </div>
+
+            <button class="pay-btn" id="payBtn" onclick="initiatePayment()">Pay Now</button>
+        </div>
+    </div>
+
+    <script>
+        const loaderOverlay = document.getElementById('loaderOverlay');
+        function showLoader() { loaderOverlay.classList.add('visible'); }
+        function hideLoader() { loaderOverlay.classList.remove('visible'); }
+
+        let cartTotal = 0;
+
+        async function loadCheckoutData() {
+            showLoader();
+            try {
+                // 1. Fetch Profile for defaults
+                const profileRes = await fetch('http://localhost:3000/users/profile', { credentials: 'include' });
+                if (profileRes.status === 401) {
+                    alert("Please login to proceed");
+                    window.location.href = 'login.html';
+                    return;
+                }
+                const user = await profileRes.json();
+
+                document.getElementById('userName').value = user.username;
+                document.getElementById('userEmail').value = user.email;
+                document.getElementById('userPhone').value = user.phone || '';
+                document.getElementById('userAddress').value = user.address || '';
+                document.getElementById('userPincode').value = user.pincode || '';
+
+                // 2. Fetch Cart for summary
+                const cartRes = await fetch('http://localhost:3000/cart', { credentials: 'include' });
+                const cartItems = await cartRes.json();
+
+                if (cartItems.length === 0) {
+                    alert("Cart is empty");
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                renderOrderSummary(cartItems);
+
+            } catch (error) {
+                console.error(error);
+                alert("Failed to load checkout data");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        function renderOrderSummary(items) {
+            const container = document.getElementById('orderItems');
+            let html = '';
+            let total = 0;
+
+            items.forEach(item => {
+                const product = item.product;
+                const price = product.product_discount;
+                const itemTotal = price * item.quantity;
+                total += itemTotal;
+
+                // Handle Image URL (S3 vs Local)
+                let imgUrl = 'https://via.placeholder.com/60';
+                if (product.product_image && product.product_image.length > 0) {
+                    const path = product.product_image[0];
+                    imgUrl = path.startsWith('http') ? path : `http://localhost:3000/${path}`;
+                }
+
+                html += `
+                    <div class="order-item">
+                        <img src="${imgUrl}" alt="${product.product_title}">
+                        <div>
+                            <div style="font-weight: 500; font-size: 0.95rem;">${product.product_title}</div>
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Qty: ${item.quantity} x $${price}</div>
+                            <div style="color: var(--primary); font-weight: 600;">$${itemTotal.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            document.getElementById('subtotalPrice').textContent = '$' + total.toFixed(2);
+            document.getElementById('totalPrice').textContent = '$' + total.toFixed(2);
+            cartTotal = total;
+        }
+
+        async function initiatePayment() {
+            const address = document.getElementById('userAddress').value;
+            const phone = document.getElementById('userPhone').value;
+
+            if (!address || !phone) {
+                alert("Please provide delivery address and phone number");
+                return;
+            }
+
+            showLoader();
+            try {
+                // 1. Create Order
+                const res = await fetch('http://localhost:3000/orders/create-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        address: address,
+                        phone: phone,
+                        payment_method: 'Online' // Default
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Failed to initiate payment");
+
+                const { razorpayOrder, order, razorpayKeyId } = data;
+
+                // 2. Open Razorpay
+                const options = {
+                    key: razorpayKeyId,
+                    amount: razorpayOrder.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+                    currency: razorpayOrder.currency,
+                    name: "Micha Store",
+                    description: "Order #" + order.order_id,
+                    image: "https://your-logo-url.com/logo.png", // Optional
+                    order_id: razorpayOrder.id,
+                    handler: async function (response) {
+                        // 3. Verify Payment
+                        await verifyPayment(response, order.order_id);
+                    },
+                    prefill: {
+                        name: document.getElementById('userName').value,
+                        email: document.getElementById('userEmail').value,
+                        contact: phone
+                    },
+                    theme: {
+                        color: "#3b82f6"
+                    },
+                    config: {
+                        display: {
+                            hide: [], // Do not hide any method
+                            preferences: {
+                                show_default_blocks: true // Ensure default blocks like UPI, Cards, Netbanking are shown
+                            }
+                        }
+                    }
+                };
+
+                const rzp1 = new Razorpay(options);
+                rzp1.on('payment.failed', function (response) {
+                    alert("Payment Failed: " + response.error.reason);
+                    console.error(response.error);
+                });
+                rzp1.open();
+
+            } catch (error) {
+                console.error(error);
+                alert("Error: " + error.message);
+            } finally {
+                hideLoader();
+            }
+        }
+
+        async function verifyPayment(paymentResponse, dbOrderId) {
+            showLoader();
+            try {
+                const res = await fetch('http://localhost:3000/orders/verify-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        razorpay_order_id: paymentResponse.razorpay_order_id,
+                        razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                        razorpay_signature: paymentResponse.razorpay_signature,
+                        order_id: dbOrderId
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Payment Successful! Order Confirmed.");
+                    window.location.href = "index.html"; // Or my-orders.html if it existed
+                } else {
+                    alert("Verification Failed: " + (data.error || "Unknown Error"));
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Payment verification failed regarding network/server error.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        window.onload = loadCheckoutData;
+    </script>
+</body>
+
+</html>

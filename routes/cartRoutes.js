@@ -13,6 +13,8 @@ router.use(authenticateUser);
  *   post:
  *     summary: Add product to cart
  *     tags: [Cart]
+ *     security:
+ *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -34,6 +36,8 @@ router.post("/", addToCart);
  *   get:
  *     summary: Get user cart
  *     tags: [Cart]
+ *     security:
+ *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: List of cart items
@@ -46,6 +50,8 @@ router.get("/", getCart);
  *   delete:
  *     summary: Remove item from cart
  *     tags: [Cart]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -64,6 +70,8 @@ router.delete("/:id", removeFromCart);
  *   put:
  *     summary: Update cart item quantity
  *     tags: [Cart]
+ *     security:
+ *       - cookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id

@@ -23,6 +23,7 @@ model User {
   pincode   String
   createdAt DateTime @default(now())
   cart      Cart[]
+  orders    Order[]
 }
 
 model Category {
@@ -50,6 +51,7 @@ model Product {
   category    Category @relation(fields: [category_id], references: [category_id])
   cart        Cart[]
   images      Image[]
+  order_items OrderItem[]
 }
 
 model Image {
@@ -78,4 +80,29 @@ model Admin {
   admin_name     String
   admin_email    String @unique
   admin_password String
+}
+
+model Order {
+  order_id        Int         @id @default(autoincrement())
+  user_id         Int
+  user            User        @relation(fields: [user_id], references: [user_id])
+  total_amount    Float
+  address         String
+  phone           String
+  payment_method  String
+  payment_status  String      @default("PENDING") // PENDING, SUCCESS, FAILED
+  order_status    String      @default("PLACED") // PLACED, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+  order_date      DateTime    @default(now())
+  order_items     OrderItem[]
+}
+
+model OrderItem {
+  order_item_id   Int     @id @default(autoincrement())
+  order_id        Int
+  order           Order   @relation(fields: [order_id], references: [order_id])
+  product_id      Int
+  product         Product @relation(fields: [product_id], references: [product_id])
+  product_name    String
+  price           Float
+  quantity        Int
 }
